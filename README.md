@@ -1,13 +1,13 @@
-# Companion repository to blog post - [Simple and re-usable GitHub Action workflows for multiple repositories]()
+# Companion repository to blog post - [Re-usable and maintainable GitHub Action workflows for multiple repositories](www.livanchuk.com/dev-blog/2021/1/6/re-usable-and-maintainable-github-action-workflows-for-multiple-repositories)
 
-This is a companion repository, containing example workflow and dockerfiles to better illustrate the
+This is a companion repository, containing example workflow and Dockerfiles to better illustrate the
 issues and solutions described in the article.
 
 Blog post is duplicated below for your convenience.
 
 ## Intro
 
-While I will talk about some project specifics, the CI/CD techniques I will outline in this post will be suitable to any individual/organization that maintains a set of GitHub repositories and wants to have a *single*, *unified* GitHub Actions workflow to test, build, validate and eventually release their binaries or whatever the end product of their work is. The only constants here are, basically: 
+While I will talk about some particulars which relate to our particular situation, the CI/CD techniques I will outline in this post will be suitable to any individual/organization that maintains a set of GitHub repositories and wants to have a *single*, *unified* GitHub Actions workflow to do whatever they want or already do with GitHub Actions. The only constants here are, basically:
 
 * GitHub for repository hosting
 * GitHub Actions for CI/CD
@@ -22,17 +22,17 @@ Let's dive in, shall we?
 
 ## Background
 
-To give you some context, our GitHub organization maintains a lengthy list of private repositories, spanning all kinds of projects which, at some point, end up on some production systems, running either Ubuntu 16.04 (xenial) or Ubuntu 18.04 (bionic).
+To give you some context, our GitHub organization maintains a lengthy list of private repositories, spanning all kinds of projects which, at some point, end up on some production systems, running either Ubuntu 16.04 (xenial) or Ubuntu 18.04 (bionic). These repositories share a build system and step to build and release our code are virtually the same for all of them.
 
-A long time ago in a galaxy far far away, as naive as we were, we started with lengthy, manual commands to generate a Debian file and then some manual work to Slack/email it to a person directly in charge of said production hardware to install the updated package. Of course, the process was often repeated many times if there was a need to make a quick-fix kind of change _(I still have nightmares about this today)_
+A long time ago in a galaxy far far away, as naive as we were, we started with lengthy, manual commands to generate a Debian file and then some manual work to Slack/email those files to a person directly in charge of said production hardware to install the updated package. Of course, the process was often repeated many times if there was a need to make a quick-fix kind of change _(I still have nightmares about this today)_
 
-Then, by the time the Empire struck back, our team had dedicated a private server to distribute these Debian (.deb) files to the production hardware and other developers who depended on it. This was a good solution in terms of distribution, but the logistics of testing/building/uploading the file to the server were still in same stage of disrepair as the Millennium Falcon was in Episode 5 - flying, but without a hyperdrive. We needed and wanted a hyperdrive to escape the clutches of the ~~Empire~~ *lots and lots* of manual labour and asking people with SSH tunnel to the APT repository server to manually upload a new version of the Debian file. 
+Then, by the time the Empire struck back, our team had dedicated a private server to distribute these Debian (.deb) files to the production hardware and other developers who depended on it. This was a good solution in terms of distribution, but the logistics of testing/building/uploading the file to the server were still in same stage of disrepair as the Millennium Falcon was in Episode 5 - flying, but without a hyperdrive. We needed and wanted a hyperdrive to escape the clutches of the ~~Empire~~ *lots and lots* of manual labour and asking people with SSH tunnel to the APT repository server to manually upload a new version of the Debian file.
 
-Finally, a Jedi returned and said Jedi bravely noticed a tab called *Actions* on every repository. Thus, a new era has begun in the galaxy, an era which promised a bright future where all laborious, manual tasks will be automated and quick-fixes can be tested, build and delivered to the production hardware in minutes, not hours. Automatically. By computers, using magic, no less. 
+Finally, a Jedi returned and said Jedi bravely noticed a tab called *Actions* on every repository. Thus, a new era has begun in the galaxy, an era which promised a bright future where all laborious, manual tasks will be automated and quick-fixes can be tested, build and delivered to the production hardware in minutes, not hours. Automatically. By computers, using magic, no less.
 
 ## Naive Version 1
 
-As the developer was just a padavan learner of GitHub Actions, the first GitHub Action (`alias 'GHA' 'GitHub Action'`) workflow was a collection of snippets from various tutorials and docs, trying to understand the ways of the GHA workflows. Essentially, it achieved this: 
+As the developer was just a padavan learner of GitHub Actions, the first GitHub Action (`alias 'GHA' 'GitHub Action'`) workflow was a collection of snippets from various tutorials and docs, trying to understand the ways of the GHA workflows. Essentially, it achieved this:
 _(note,_ 🤬 _denotes a source of fatal-error in this initial attempt. The amount of such emojis indicates the gravity of the error)_  
 
 1. Set up [strategy matrix](https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix) to run on base-bones (🤬) Ubuntu 16.04 and 18.04 Docker containers.
@@ -40,7 +40,7 @@ _(note,_ 🤬 _denotes a source of fatal-error in this initial attempt. The amou
 3. Install a *ton* (🤬🤬🤬) of _basic_ dependency packages in the container. (we are talking `wget` kind of stuff here) 
 4. Upgrade *git* (of all things) so that `actions/checkout` would not default to REST API cloning method via a zip file and would actually create a `.git` directory. _(I still have nightmares about this today)_
 5. Clone target repo (duh)
-6. Create a workspace (1/2 🤬)
+6. Create a workspace (🤬)
 7. Clone repositories which are dependencies for the target repository
 8. Install/upgrade dependency packages
 9. Run tests
