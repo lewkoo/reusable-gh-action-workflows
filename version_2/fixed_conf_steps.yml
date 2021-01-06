@@ -1,0 +1,25 @@
+# This file is intended to serve as a demonstration of a possible fix for repeated container configuration 
+# inside workflows
+
+# It is not intended to be executed
+
+name: Lots of repeated steps
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container:
+          - 'custom-ubuntu:xenial'
+          - 'custom-ubuntu:bionic'
+    container:
+      image: ${{ matrix.container }}
+      # This is not required if images are public
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.ghcr_token }}
+    steps:
+      # Start of the actual workflow
+      - name: Checkout code
+        uses: actions/checkout@v2

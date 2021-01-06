@@ -1,0 +1,45 @@
+# This file is intended to serve as a demonstration of a bad practice of performing repetitive
+# tasks of configuring the build system, installing dependencies, etc. 
+# Not only are these steps wasteful and repetitive but they are also hard to maintain across multiple repositories. 
+
+# It is not intended to be executed
+
+name: Lots of repeated steps
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container:
+          - 'ubuntu:xenial'
+          - 'ubuntu:bionic'
+    container:
+      image: ${{ matrix.container }}
+    steps:
+      # This step configures locale inside both containers
+      # It should be moved to Dockerfile and become part of docker image
+      - name: Configure locales
+        run: |
+          apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y locales
+          sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+              dpkg-reconfigure --frontend=noninteractive locales && \
+              update-locale LANG=en_US.UTF-8
+      
+      # Similarly, this step installs some basic dependency packages which are needed down the line
+      # They should be installed when building a docker image
+      - name: Update git & install additional dependencies
+        run: |
+          # Update package cache
+          apt-get update
+          # Install build agent and some other packages
+          apt-get install -yq software-properties-common apt-utils debhelper build-essential wget
+          # Upgrade git
+          add-apt-repository -y -u ppa:git-core/ppa
+          # Upgrade git
+          apt-get install -yq git
+        shell: bash
+
+      # Start of the actual workflow
+      - name: Checkout code
+        uses: actions/checkout@v2

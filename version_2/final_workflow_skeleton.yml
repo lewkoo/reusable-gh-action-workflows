@@ -1,0 +1,42 @@
+# This file is intended to serve as a demonstration of the techniques outlined in the post. 
+# See README
+
+# It is not intended to be executed
+
+name: Clean and maintainable workflow
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        container:
+          - 'custom-ubuntu:xenial'
+          - 'custom-ubuntu:bionic'
+    container:
+      image: ${{ matrix.container }}
+      env:
+        GH_USER: ${{ secrets.GH_USER }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      # This is not required if images are public
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.ghcr_token }}
+    steps:
+      # Checkout the repo being built
+      - uses: actions/checkout@v2
+      # Checkout the action repo
+      - uses: actions/checkout@v2
+        with:
+          repository: example-org-name/custom-action
+          token: ${{ secrets.GH_TOKEN }}
+          path: .github/actions/custom-action
+      # Run the custom action
+      - name: 'Perform common steps'
+        uses: ./.github/actions/custom-action
+        id: custom-action
+        with:
+          step_1: true
+          step_2: false
+          step_3: true
+          step_4: false
